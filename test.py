@@ -17,3 +17,34 @@ import citi
 if __name__ == '__main__':
 	googlemap.google_maps()
 	print citi.geo_loc("345 Chambers Street 10282 NY")
+
+def getClosest(address):
+# returns the latitude and longitude of the closest Citibike station to a given address
+	stationList = getStations()
+	#for latlong in stationlist:
+	#	getDistance(address, latlong)
+	distances = [getDistance(address, latlong, "walking") for latlong in stationList]
+	shortest = min(distances)
+	index = distances.index(shortest)
+	return stationList[index]
+
+def getStations():
+# returns a list of the latitudes and longitudes of all Citibike stations in the system
+	rlist = getCitiJSON()
+	#stationlist = [r["stationName"] for r in rlist]
+	stationList = [str(r["latitude"])+","+str(r["longitude"]) for r in rlist]
+	return stationList
+
+def getDistance(origin, destination, mode):
+# returns the distance (in meters) between two locations given a mode of transportation
+	rlist = getGoogleJSON(origin, destination, mode)
+	if isinstance(rlist, basestring):
+		return rlist
+	else:
+		return rlist['legs']['distance']['value']
+
+
+
+# @app.route('/authorize')
+# def authorize():
+# 	return

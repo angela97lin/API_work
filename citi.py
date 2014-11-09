@@ -35,4 +35,5 @@ def nearest_station(location):
 
 if __name__ == '__main__':
         #print citi_list()
-        print nearest_station("345 Chambers Street NY 10282")
+        #print nearest_station("345 Chambers Street NY 10282")
+        print nearest_station("London")
