@@ -1,12 +1,33 @@
 {% extends "base.html" %}
   {% block bodycontent %}
 
-    <h1>About our project</h1>
-	Justin Strauss and Angela Lin <br>
-	Software Development Period 7 <br>
-	API Project <br>
- <br>
-	This project uses JSON and APIs. <br>
- <br>
+ <center>
+ <h1>Citibike vs. MTA</h1>
+ <h2>Travel time showdown</h2>
+ <u>Note</u>: Please use locations within the current Citibike Service area in Lower Manhattan and Downtown Brooklyn. <br> <br>
+
+<form class="pure-form pure-form-aligned" method="POST">
+    <fieldset>
+
+        <div class="pure-control-group">
+            <label for="origin">Origin Address</label>
+            <input id="origin" type="text" placeholder="Type origin here..." name="origin">
+        </div>
+
+        <div class="pure-control-group">
+            <label for="destination">Destination Address</label>
+            <input id="destination" type="text" placeholder="Type destination here..." name="destination">
+        </div>
+
+        <div class="pure-controls">
+
+            <button type="submit" name="b" value="Search" class="pure-button pure-button-primary">Search</button>
+
+        </div>
+    </fieldset>
+</form>
+
+ </center>
+
 
   {% endblock bodycontent %}
