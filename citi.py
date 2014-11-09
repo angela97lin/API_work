@@ -1,6 +1,7 @@
 import urllib2
 import json
-
+import math
+import googlemaps
 ##GOOGLE API KEY
 key = 'AIzaSyBun2m9jaQTFGb0qtR7Shh7inqFhzKbLL4' #API key
 
@@ -15,29 +16,23 @@ def citi_list():
 	rlist = d['stationBeanList']
         return rlist
 
-#finds the longitude and latitude of a given location parameter using Google's Geocode API
-#return format is a dictionary with longitude and latitude as keys
-def geo_loc(location):
-        location = location.replace(" ", "%20")
-        #print location
-        googleurl = "https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s" % (location,key)
-        #print googleurl
-        request = urllib2.urlopen(googleurl)
-        results = request.read()
-        gd = json.loads(results) #dictionary
-        result_dic = gd['results'][0] #dictionary which is the first element in the results list
-        #print result_dic
-        geometry = result_dic['geometry'] #geometry is another dictionary
-        #print geometry
-        loc = geometry['location'] #yet another dictionary
-        #print loc
-        #longitude = loc['lng']
-        #latitude = loc['lat']
-        #print longitude
-        #print latitude
-        return loc
-
+#given a specific location, will return the dictionary entry to the nearest citibike station        
+def nearest_station(location):
+        dis_list = []
+        geo = googlemaps.geo_loc(location)
+        for r in citi_list():#citi_list is a list of dictionaries
+                geo_long = geo['lng']
+                geo_lat = geo['lat']
+                diff_long = geo_long - r['longitude']
+                diff_lat = geo_lat - r['latitude']
+                distance = math.sqrt((diff_long**2) + (diff_lat**2))
+                dis_list.append(distance)
+        print min(dis_list)
+        min_ind = dis_list.index(min(dis_list))
+        #print citi_list()[0]
+        return citi_list()[min_ind]
 
 
 if __name__ == '__main__':
-        print citi_dic()
+        #print citi_list()
+        print nearest_station("345 Chambers Street NY 10282")

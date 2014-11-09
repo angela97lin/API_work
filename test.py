@@ -1,6 +1,6 @@
 import urllib2
 import json
-import googlemap
+import googlemaps
 import citi
 
 ###The Directions API may only be used in conjunction with displaying results on a Google map; using Directions data without displaying a map for which directions data was requested is prohibited.
