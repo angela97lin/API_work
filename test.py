@@ -15,5 +15,5 @@ import citi
 
 
 if __name__ == '__main__':
-        #googlemap.google_maps()
-        #print citi.geo_loc("345 Chambers Street 10282 NY")
+	googlemap.google_maps()
+	print citi.geo_loc("345 Chambers Street 10282 NY")
