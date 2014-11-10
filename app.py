@@ -36,17 +36,14 @@ def index():
 			flash(rlist3)
 			flashed = True
 		if flashed:
-			render_template("result.html")
-
-		print rlist1
-		print rlist2
-		print rlist3
+			return render_template("result.html")
 
 		# use the dictionaries to get the distance for each leg of the Citibike trip
-		d1 = rlist1['legs']['distance']['value']
-		d2 = rlist2['legs']['distance']['value']
-		d3 = rlist3['legs']['distance']['value']
+		d1 = rlist1[0]['legs'][0]['distance']['value']
+		d2 = rlist2[0]['legs'][0]['distance']['value']
+		d3 = rlist3[0]['legs'][0]['distance']['value']
 
+		# flash error messages if the walk is too far
 		if d1 > 1000:
 			flash("Your origin is over a kilometer walk from the closest Citibike station.")
 			flashed = True
@@ -55,7 +52,7 @@ def index():
 			flashed = True
 		if flashed:
 			flash("Please use locations within the current Citibike Service area!")
-			render_template("result.html")
+			return render_template("result.html")
 
 		# getDistance(origin, station1, "walking")
 		# getDistance(station2, destination, "walking")
@@ -106,7 +103,7 @@ def getGoogleJSON(origin, destination, mode):
 	request = urllib2.urlopen(url)
 	result = request.read()
 	d = json.loads(result)
-	if d['status']!="OK":
+	if d['status'] != "OK":
 		return "No %s directions exist between %s and %s." %(mode, origin, destination)
 	else:
 		rlist = d['routes']
