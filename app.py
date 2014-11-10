@@ -35,13 +35,13 @@ def index():
                         station1 = closestStation(geo1)
                         station2 = closestStation(geo2)                
                                         
-                        latlong1 = str(station1["latitude"])+","+str(station1["longitude"])
-                        latlong2 = str(station2["latitude"])+","+str(station2["longitude"])
+                        #latlong1 = str(station1["latitude"])+","+str(station1["longitude"])
+                        #latlong2 = str(station2["latitude"])+","+str(station2["longitude"])
                         
                         # get dictionaries of Google Map route info for walking/bicycling
-                        rlist1 = getGoogleJSON(urllib.quote_plus(origin),latlong1,"walking")
-                        rlist2 = getGoogleJSON(latlong1,latlong2,"bicycling")
-                        rlist3 = getGoogleJSON(latlong2,urllib.quote_plus(destination), "walking")
+                        rlist1 = getGoogleJSON(urllib.quote_plus(origin),station1,"walking")
+                        rlist2 = getGoogleJSON(station1,station2,"bicycling")
+                        rlist3 = getGoogleJSON(station2,urllib.quote_plus(destination), "walking")
 
                         # flash error messages and redirects if a route doesn't exist
                         if isinstance(rlist1, basestring):
@@ -60,10 +60,10 @@ def index():
 
                         # flash error messages if the walk is too far
                         if d1 > 1000:
-                                flash("Your origin is over a kilometer walk from the closest Citibike station.")
+                                flash(origin + " is over a kilometer walk from the closest Citibike station.")
                                 flashed = True
                         if d3 > 1000:
-                                flash("Your destination is over a kilometer walk from the closest Citibike station.")
+                                flash(destination + " is over a kilometer walk from the closest Citibike station.")
                                 flashed = True
                         if flashed:
                                 flash("Please use locations within the current Citibike Service area!")
@@ -119,7 +119,15 @@ def getCitiJSON():
 
 def getGoogleJSON(origin, destination, mode):
 # returns a dictionary of Google Map route information
-	url = "https://maps.googleapis.com/maps/api/directions/json?origin=%s&destination=%s&mode=%s&key=%s" % (origin, destination, mode, key)
+        org = origin
+        dest = destination
+        if isinstance(origin,dict):
+                org = str(origin["latitude"])+","+str(origin["longitude"])
+                origin = origin['stationName']
+        if isinstance(destination,dict):
+                dest = str(destination["latitude"])+","+str(destination["longitude"])
+                destination = destination['stationName']
+	url = "https://maps.googleapis.com/maps/api/directions/json?origin=%s&destination=%s&mode=%s&key=%s" % (org, dest, mode, key)
 	request = urllib2.urlopen(url)
 	result = request.read()
 	d = json.loads(result)
