@@ -31,9 +31,9 @@ def index():
                         rlist2 = getGoogleJSON(latlong1,latlong2,"bicycling")
                         rlist3 = getGoogleJSON(latlong2,urllib.quote_plus(destination), "walking")
                         
-                        print rlist1[0]
-                        print rlist2[0]
-                        print rlist3[0]
+                        #print rlist1[0]
+                        #print rlist2[0]
+                        #print rlist3[0]
 
                         # flash error messages and redirects if a route doesn't exist
         
@@ -74,6 +74,8 @@ def index():
 @app.route('/about')
 def about():
 	return render_template("about.html")
+
+
 
 def closestStation(address):
 # returns the dictionary entry of the closest Citibike station to a given address
