@@ -29,7 +29,7 @@
   {% if messages %}
     <div class=flashes>
     {% for message in messages %}
-    {{ message }} <br>
+    {{ message }}
     {% endfor %}
     </div>
   {% endif %}

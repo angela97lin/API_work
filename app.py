@@ -11,18 +11,30 @@ app = Flask(__name__)
 @app.route('/', methods=["POST","GET"])
 @app.route('/index', methods=["POST","GET"])
 def index():
-	if request.method=="POST":
+        if request.method=="POST":
                 flashed = False
 		# read form data
 		origin = request.form["origin"]
 		destination = request.form["destination"]
                 
                 if origin != '' and destination != '':
-        # find the latitude and longitude of the stations closest to origin and destination
-                        station1 = closestStation(origin)
-                        station2 = closestStation(destination)
-                        #print station1
-                        #print station2
+                        # find the latitude and longitude of the stations closest to origin and destination
+                        geo1=geo_loc(origin)
+                        geo2=geo_loc(destination)
+                        
+                        # flash error messages if entry is bogus
+                        if isinstance(geo1, basestring):
+                                flash(geo1)
+                                flashed = True
+                        if isinstance(geo2, basestring):
+                                flash(geo2)
+                                flashed = True
+                        if flashed:
+                                return redirect('/')
+
+                        station1 = closestStation(geo1)
+                        station2 = closestStation(geo2)                
+                                        
                         latlong1 = str(station1["latitude"])+","+str(station1["longitude"])
                         latlong2 = str(station2["latitude"])+","+str(station2["longitude"])
                         
@@ -30,13 +42,8 @@ def index():
                         rlist1 = getGoogleJSON(urllib.quote_plus(origin),latlong1,"walking")
                         rlist2 = getGoogleJSON(latlong1,latlong2,"bicycling")
                         rlist3 = getGoogleJSON(latlong2,urllib.quote_plus(destination), "walking")
-                        
-                        #print rlist1[0]
-                        #print rlist2[0]
-                        #print rlist3[0]
 
                         # flash error messages and redirects if a route doesn't exist
-        
                         if isinstance(rlist1, basestring):
                                 flash(rlist1)
                                 flashed = True
@@ -77,27 +84,29 @@ def about():
 
 
 
-def closestStation(address):
+def closestStation(geo):
 # returns the dictionary entry of the closest Citibike station to a given address
-	geo = geo_loc(address)
-	rlist = getCitiJSON()
-	distances = [math.sqrt((geo['lng']-r['longitude'])**2 + (geo['lat']-r['latitude'])**2) for r in rlist]
-	shortest = min(distances)
-	index = distances.index(shortest)
-	return rlist[index]
+                rlist = getCitiJSON()
+                distances = [math.sqrt((geo['lng']-r['longitude'])**2 + (geo['lat']-r['latitude'])**2) for r in rlist]
+                shortest = min(distances)
+                index = distances.index(shortest)
+                return rlist[index]
 
 def geo_loc(location):
 #finds the longitude and latitude of a given location parameter using Google's Geocode API
 #return format is a dictionary with longitude and latitude as keys
-	location = urllib.quote_plus(location)
-	googleurl = "https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s" % (location,key)
+	loc = urllib.quote_plus(location)
+	googleurl = "https://maps.googleapis.com/maps/api/geocode/json?address=%s&key=%s" % (loc,key)
 	request = urllib2.urlopen(googleurl)
 	results = request.read()
 	gd = json.loads(results) #dictionary
-	result_dic = gd['results'][0] #dictionary which is the first element in the results list
-	geometry = result_dic['geometry'] #geometry is another dictionary
-	loc = geometry['location'] #yet another dictionary
-	return loc
+        if gd['status'] != "OK":
+                return location+" is a bogus location! What are you thinking?"
+        else:
+                result_dic = gd['results'][0] #dictionary which is the first element in the results list
+                geometry = result_dic['geometry'] #geometry is another dictionary
+                loc = geometry['location'] #yet another dictionary
+                return loc
 
 def getCitiJSON():
 # returns a dictionary of Citibike station information
