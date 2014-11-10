@@ -27,7 +27,7 @@ def nearest_station(location):
                 diff_lat = geo_lat - r['latitude']
                 distance = math.sqrt((diff_long**2) + (diff_lat**2))
                 dis_list.append(distance)
-        print min(dis_list)
+        #print min(dis_list)
         min_ind = dis_list.index(min(dis_list))
         #print citi_list()[0]
         return citi_list()[min_ind]
@@ -35,5 +35,5 @@ def nearest_station(location):
 
 if __name__ == '__main__':
         #print citi_list()
-        #print nearest_station("345 Chambers Street NY 10282")
+        print nearest_station("345 Chambers Street NY 10282")
         print nearest_station("London")

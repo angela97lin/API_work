@@ -12,54 +12,63 @@ app = Flask(__name__)
 @app.route('/index', methods=["POST","GET"])
 def index():
 	if request.method=="POST":
+                flashed = False
 		# read form data
 		origin = request.form["origin"]
 		destination = request.form["destination"]
+                
+                if origin != '' and destination != '':
+        # find the latitude and longitude of the stations closest to origin and destination
+                        station1 = closestStation(origin)
+                        station2 = closestStation(destination)
+                        #print station1
+                        #print station2
+                        latlong1 = str(station1["latitude"])+","+str(station1["longitude"])
+                        latlong2 = str(station2["latitude"])+","+str(station2["longitude"])
+                        
+                        # get dictionaries of Google Map route info for walking/bicycling
+                        rlist1 = getGoogleJSON(urllib.quote_plus(origin),latlong1,"walking")
+                        rlist2 = getGoogleJSON(latlong1,latlong2,"bicycling")
+                        rlist3 = getGoogleJSON(latlong2,urllib.quote_plus(destination), "walking")
+                        
+                        print rlist1[0]
+                        print rlist2[0]
+                        print rlist3[0]
 
-		# find the latitude and longitude of the stations closest to origin and destination
-		station1 = closestStation(origin)
-		station2 = closestStation(destination)
-		latlong1 = str(station1["latitude"])+","+str(station1["longitude"])
-		latlong2 = str(station2["latitude"])+","+str(station2["longitude"])
+                        # flash error messages and redirects if a route doesn't exist
+        
+                        if isinstance(rlist1, basestring):
+                                flash(rlist1)
+                                flashed = True
+                        if isinstance(rlist3, basestring):
+                                flash(rlist3)
+                                flashed = True
+                        if flashed:
+                                return redirect("/")
 
-		# get dictionaries of Google Map route info for walking/bicycling
-		rlist1 = getGoogleJSON(urllib.quote_plus(origin),latlong1,"walking")
-		rlist2 = getGoogleJSON(latlong1,latlong2,"bicycling")
-		rlist3 = getGoogleJSON(latlong2,urllib.quote_plus(destination), "walking")
+                        # use the dictionaries to get the distance for each leg of the Citibike trip
+                        d1 = rlist1[0]['legs'][0]['distance']['value']
+                        d2 = rlist2[0]['legs'][0]['distance']['value']
+                        d3 = rlist3[0]['legs'][0]['distance']['value']
 
-		# flash error messages if a route doesn't exist
-		flashed = False
-		if isinstance(rlist1, basestring):
-			flash(rlist1)
-			flashed = True
-		if isinstance(rlist3, basestring):
-			flash(rlist3)
-			flashed = True
-		if flashed:
-			return render_template("result.html")
-
-		# use the dictionaries to get the distance for each leg of the Citibike trip
-		d1 = rlist1[0]['legs'][0]['distance']['value']
-		d2 = rlist2[0]['legs'][0]['distance']['value']
-		d3 = rlist3[0]['legs'][0]['distance']['value']
-
-		# flash error messages if the walk is too far
-		if d1 > 1000:
-			flash("Your origin is over a kilometer walk from the closest Citibike station.")
-			flashed = True
-		if d3 > 1000:
-			flash("Your destination is over a kilometer walk from the closest Citibike station.")
-			flashed = True
-		if flashed:
-			flash("Please use locations within the current Citibike Service area!")
-			return render_template("result.html")
-
-		# getDistance(origin, station1, "walking")
-		# getDistance(station2, destination, "walking")
-		# print station1
-		# print station2
-		return render_template("result.html", d1=d1, d2=d2, d3=d3)
-	else:
+                        # flash error messages if the walk is too far
+                        if d1 > 1000:
+                                flash("Your origin is over a kilometer walk from the closest Citibike station.")
+                                flashed = True
+                        if d3 > 1000:
+                                flash("Your destination is over a kilometer walk from the closest Citibike station.")
+                                flashed = True
+                        if flashed:
+                                flash("Please use locations within the current Citibike Service area!")
+                                return redirect("/")
+                        #print station1
+                        #print station2
+                        return render_template("result.html", d1=d1, d2=d2, d3=d3)
+                else: #Both not filled out
+                        flash("Please fill out the required fields.")
+                        flashed = True
+                        return redirect("/")
+	else: #GET METHOD
 		return render_template("index.html")
 
 @app.route('/about')
@@ -110,6 +119,6 @@ def getGoogleJSON(origin, destination, mode):
 		return rlist
 
 if __name__ == '__main__':
-	app.secret_key = "don't store this on github"
+        app.secret_key = "don't store this on github"
 	app.debug = True
 	app.run(host='0.0.0.0')
