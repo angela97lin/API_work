@@ -38,9 +38,11 @@ def index():
                         
                         # get dictionaries of Google Map route info for walking/bicycling
                         rlist1 = getGoogleJSON(urllib.quote_plus(origin),station1,"walking")
+                        map1 = create_map(urllib.quote_plus(origin),station1,"walking")
                         rlist2 = getGoogleJSON(station1,station2,"bicycling")
+                        map2 = create_map(station1,station2,"bicycling")
                         rlist3 = getGoogleJSON(station2,urllib.quote_plus(destination), "walking")
-
+                        map3 = create_map(station2,urllib.quote_plus(destination), "walking")
                         # flash error messages and redirect if a route doesn't exist
                         if isinstance(rlist1, basestring):
                                 flash(rlist1)
@@ -75,12 +77,20 @@ def index():
                         t3 = rlist3[0]['legs'][0]['duration']['text']
                         tsum = int(t1[:string.find(t1," ")]) + int(t2[:string.find(t2," ")]) + int(t3[:string.find(t3," ")])
 
-                        # steps1 = rlist1[0]['legs'][0]['steps']
-                        # s1 = [i['html_instructions'] for i in steps1]
-                        # steps2 = rlist2[0]['legs'][0]['steps']
-                        # s2 = [i['html_instructions'] for i in steps2]
-                        # steps3 = rlist3[0]['legs'][0]['steps']
-                        # s3 = [i['html_instructions'] for i in steps3]
+                        steps1 = rlist1[0]['legs'][0]['steps']
+                        #print steps1
+                        #s1 = [i['html_instructions'] for i in steps1]
+                        #print s1
+                        latlong1 = [reverse_geo(i['start_location']) for i in steps1]
+                        
+                        print latlong1
+                        steps2 = rlist2[0]['legs'][0]['steps']
+                        #s2 = [i['html_instructions'] for i in steps2]
+                        #print s2
+
+                        steps3 = rlist3[0]['legs'][0]['steps']
+                        s3 = [i['html_instructions'] for i in steps3]
+                        #print s3
 
                         rlistT = getGoogleJSON(urllib.quote_plus(origin), urllib.quote_plus(destination), "transit")
 
@@ -89,10 +99,18 @@ def index():
 
                         # stepsT3 = rlistT[0]['legs'][0]['steps'][2]['steps']
                         # T3 = [i['html_instructions'] for i in stepsT3]
-
-
-                        return render_template("result.html", tsum=tsum, rlist1=rlist1, rlist2=rlist2, rlist3=rlist3,
-                                                              rlistT=rlistT, )
+                        #counter for the maps
+                        mapc = 0
+                        return render_template("result.html", 
+                                               tsum=tsum, 
+                                               rlist1=rlist1, 
+                                               rlist2=rlist2, 
+                                               rlist3=rlist3,
+                                               rlistT=rlistT,
+                                               map1 = map1,
+                                               map2 = map2,
+                                               map3 = map3, 
+                                               mapc = mapc)
                 else: #Both not filled out
                         flash("Please fill out the required fields.")
                         flashed = True
@@ -103,6 +121,17 @@ def index():
 @app.route('/about')
 def about():
 	return render_template("about.html")
+
+#given a dictionary with lng and lat to find approximate address
+def reverse_geo(ldic):
+        googleurl = "https://maps.googleapis.com/maps/api/geocode/json?latlng=%s,%s&key=%s" % (ldic['lat'], ldic['lng'], key)
+        request = urllib2.urlopen(googleurl)
+	result = request.read()
+	d = json.loads(result)
+        rdic = d['results'][0]
+        address = rdic['formatted_address']
+        address = urllib.quote_plus(address)
+        return address
 
 def closestStation(geo):
 # returns the dictionary entry of the closest Citibike station to a given address
@@ -136,6 +165,19 @@ def getCitiJSON():
 	d = json.loads(result)
 	rlist = d['stationBeanList']
 	return rlist
+
+def create_map(origin, destination, mode):
+        org = origin
+        dest = destination
+        #now = int(time.time())
+        if isinstance(origin,dict):
+                org = str(origin["latitude"])+","+str(origin["longitude"])
+                origin = origin['stationName']
+        if isinstance(destination,dict):
+                dest = str(destination["latitude"])+","+str(destination["longitude"])
+                destination = destination['stationName']
+	url = "https://maps.googleapis.com/maps/api/directions/json?origin=%s&destination=%s&mode=%s&key=%s" % (org, dest, mode, key)
+        return url
 
 def getGoogleJSON(origin, destination, mode):
 # returns a dictionary of Google Map route information
