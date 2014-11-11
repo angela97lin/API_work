@@ -39,9 +39,10 @@
     </center>
     <b>Leg 1</b>: Walk {{rlist1[0]['legs'][0]['distance']['text']}} in {{rlist1[0]['legs'][0]['duration']['text']}}.<br>
     <br>
-    {% for step in rlist1[0]['legs'][0]['steps'] %}
-    {{step['html_instructions']|striptags}}<br>
+    <ol>{% for step in rlist1[0]['legs'][0]['steps'] %}
+    <li>{{step['html_instructions']|striptags}}<br></li>
     {% endfor %}
+    </ol>
     <iframe
        width="500"
        height="350"
@@ -49,11 +50,12 @@
        src="https://www.google.com/maps/embed/v1/directions?key=AIzaSyBun2m9jaQTFGb0qtR7Shh7inqFhzKbLL4&origin={{rlist1[0]['legs'][0]['start_location']['lat']}},{{rlist1[0]['legs'][0]['start_location']['lng']}}&destination={{rlist1[0]['legs'][0]['end_location']['lat']}},{{rlist1[0]['legs'][0]['end_location']['lng']}}&avoid=tolls|highways&mode=walking">
     </iframe>
     <br>
-    <b>Leg 2</b>: Bike {{rlist2[0]['legs'][0]['distance']['text']}} in {{rlist2[0]['legs'][0]['duration']['text']}}.<br>
     <br>
+    <b>Leg 2</b>: Bike {{rlist2[0]['legs'][0]['distance']['text']}} in {{rlist2[0]['legs'][0]['duration']['text']}}.<br>
+    <br><ol>
     {% for step in rlist2[0]['legs'][0]['steps'] %}
-    {{step['html_instructions']|striptags}}<br>
-    {% endfor %}
+    <li>{{step['html_instructions']|striptags}}<br></li>
+    {% endfor %}</ol>
     <iframe
        width="500"
        height="350"
@@ -61,11 +63,12 @@
        src="https://www.google.com/maps/embed/v1/directions?key=AIzaSyBun2m9jaQTFGb0qtR7Shh7inqFhzKbLL4&origin={{rlist2[0]['legs'][0]['start_location']['lat']}},{{rlist2[0]['legs'][0]['start_location']['lng']}}&destination={{rlist2[0]['legs'][0]['end_location']['lat']}},{{rlist2[0]['legs'][0]['end_location']['lng']}}&avoid=tolls|highways&mode=bicycling">
     </iframe>
     <br>
-    <b>Leg 3</b>: Walk {{rlist3[0]['legs'][0]['distance']['text']}} in {{rlist3[0]['legs'][0]['duration']['text']}}.<br>
     <br>
+    <b>Leg 3</b>: Walk {{rlist3[0]['legs'][0]['distance']['text']}} in {{rlist3[0]['legs'][0]['duration']['text']}}.<br>
+    <br><ol>
     {% for step in rlist3[0]['legs'][0]['steps'] %}
-    {{step['html_instructions']|striptags}}<br>
-    {% endfor %}
+    <li>{{step['html_instructions']|striptags}}<br></li>
+    {% endfor %}</ol>
     <br>
     <iframe
        width="500"
@@ -73,7 +76,7 @@
        frameborder="0" style="border:0"
        src="https://www.google.com/maps/embed/v1/directions?key=AIzaSyBun2m9jaQTFGb0qtR7Shh7inqFhzKbLL4&origin={{rlist3[0]['legs'][0]['start_location']['lat']}},{{rlist3[0]['legs'][0]['start_location']['lng']}}&destination={{rlist3[0]['legs'][0]['end_location']['lat']}},{{rlist3[0]['legs'][0]['end_location']['lng']}}&avoid=tolls|highways&mode=walking">
     </iframe>
-   <br>
+    <br>
 
   </div>
   <div class="pure-u-11-24">
@@ -83,7 +86,7 @@
     </center>
     
     {% for stepdict in rlistT[0]['legs'][0]['steps'] %}
-    
+    <br>
     <b>Leg {{rlistT[0]['legs'][0]['steps'].index(stepdict)+1}}</b>: {{stepdict['html_instructions']}}. <br>
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     ({{stepdict['distance']['text']}} in {{stepdict['duration']['text']}})<br>
@@ -92,18 +95,24 @@
     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
     <img src={{stepdict['transit_details']['line']['icon']}}>
     {% endif %}
-
-    LEG NUMBER: {{rlistT[0]['legs'][0]['steps'].index(stepdict)+1}}
-    {% if (mapc)==0 %}
-    hi
-    {% elif (mapc)==1 %}
-    hi1
-    {% elif (mapc)==2 %}
-    hi2
+    <br>
+    {% if stepdict['travel_mode']=="TRANSIT" %}
+    <iframe
+       width="500"
+       height="350"
+       frameborder="0" style="border:0"
+       src="https://www.google.com/maps/embed/v1/directions?key=AIzaSyBun2m9jaQTFGb0qtR7Shh7inqFhzKbLL4&origin={{stepdict['start_location']['lat']}},{{stepdict['start_location']['lng']}}&destination={{stepdict['end_location']['lat']}},{{stepdict['end_location']['lng']}}&avoid=tolls|highways&mode=transit">
+    </iframe>
+    <br>
+    {% elif stepdict['travel_mode']=="WALKING" %}
+    <iframe
+       width="500"
+       height="350"
+       frameborder="0" style="border:0"
+       src="https://www.google.com/maps/embed/v1/directions?key=AIzaSyBun2m9jaQTFGb0qtR7Shh7inqFhzKbLL4&origin={{stepdict['start_location']['lat']}},{{stepdict['start_location']['lng']}}&destination={{stepdict['end_location']['lat']}},{{stepdict['end_location']['lng']}}&avoid=tolls|highways&mode=walking">
+    </iframe>
+    <br>
     {% endif %}
-    {% set mapc = mapc +1 %}
-    
-    <br><br>
     {% endfor %}
     <!--
 	<b>Leg 1</b>: Walk {{rlistT[0]['legs'][0]['steps'][0]['distance']['text']}} in {{rlistT[0]['legs'][0]['steps'][0]['duration']['text']}}.<br>
