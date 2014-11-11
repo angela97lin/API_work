@@ -3,7 +3,7 @@
 # API Project
 
 from flask import Flask, render_template, request, redirect, session, url_for, flash
-import urllib2, json, urllib, math
+import urllib2, json, urllib, math, time, string
 key = 'AIzaSyBun2m9jaQTFGb0qtR7Shh7inqFhzKbLL4'
 
 app = Flask(__name__)
@@ -18,7 +18,7 @@ def index():
 		destination = request.form["destination"]
                 
                 if origin != '' and destination != '':
-                        # find the latitude and longitude of the stations closest to origin and destination
+                        # find the latitude and longitude of the origin and destination
                         geo1=geo_loc(origin)
                         geo2=geo_loc(destination)
                         
@@ -32,18 +32,16 @@ def index():
                         if flashed:
                                 return redirect('/')
 
+                        # gets a dictionary corresponding to the closest Citibike station
                         station1 = closestStation(geo1)
-                        station2 = closestStation(geo2)                
-                                        
-                        #latlong1 = str(station1["latitude"])+","+str(station1["longitude"])
-                        #latlong2 = str(station2["latitude"])+","+str(station2["longitude"])
+                        station2 = closestStation(geo2)
                         
                         # get dictionaries of Google Map route info for walking/bicycling
                         rlist1 = getGoogleJSON(urllib.quote_plus(origin),station1,"walking")
                         rlist2 = getGoogleJSON(station1,station2,"bicycling")
                         rlist3 = getGoogleJSON(station2,urllib.quote_plus(destination), "walking")
 
-                        # flash error messages and redirects if a route doesn't exist
+                        # flash error messages and redirect if a route doesn't exist
                         if isinstance(rlist1, basestring):
                                 flash(rlist1)
                                 flashed = True
@@ -55,7 +53,6 @@ def index():
 
                         # use the dictionaries to get the distance for each leg of the Citibike trip
                         d1 = rlist1[0]['legs'][0]['distance']['value']
-                        d2 = rlist2[0]['legs'][0]['distance']['value']
                         d3 = rlist3[0]['legs'][0]['distance']['value']
 
                         # flash error messages if the walk is too far
@@ -68,9 +65,34 @@ def index():
                         if flashed:
                                 flash("Please use locations within the current Citibike Service area!")
                                 return redirect("/")
-                        #print station1
-                        #print station2
-                        return render_template("result.html", d1=d1, d2=d2, d3=d3)
+
+                        #d1 = rlist1[0]['legs'][0]['distance']['text']
+                        #d2 = rlist2[0]['legs'][0]['distance']['text']
+                        #d3 = rlist3[0]['legs'][0]['distance']['text']
+
+                        t1 = rlist1[0]['legs'][0]['duration']['text']
+                        t2 = rlist2[0]['legs'][0]['duration']['text']
+                        t3 = rlist3[0]['legs'][0]['duration']['text']
+                        tsum = int(t1[:string.find(t1," ")]) + int(t2[:string.find(t2," ")]) + int(t3[:string.find(t3," ")])
+
+                        # steps1 = rlist1[0]['legs'][0]['steps']
+                        # s1 = [i['html_instructions'] for i in steps1]
+                        # steps2 = rlist2[0]['legs'][0]['steps']
+                        # s2 = [i['html_instructions'] for i in steps2]
+                        # steps3 = rlist3[0]['legs'][0]['steps']
+                        # s3 = [i['html_instructions'] for i in steps3]
+
+                        rlistT = getGoogleJSON(urllib.quote_plus(origin), urllib.quote_plus(destination), "transit")
+
+                        # stepsT1 = rlistT[0]['legs'][0]['steps'][0]['steps']
+                        # T1 = [i['html_instructions'] for i in stepsT1]
+
+                        # stepsT3 = rlistT[0]['legs'][0]['steps'][2]['steps']
+                        # T3 = [i['html_instructions'] for i in stepsT3]
+
+
+                        return render_template("result.html", tsum=tsum, rlist1=rlist1, rlist2=rlist2, rlist3=rlist3,
+                                                              rlistT=rlistT, )
                 else: #Both not filled out
                         flash("Please fill out the required fields.")
                         flashed = True
@@ -82,15 +104,13 @@ def index():
 def about():
 	return render_template("about.html")
 
-
-
 def closestStation(geo):
 # returns the dictionary entry of the closest Citibike station to a given address
-                rlist = getCitiJSON()
-                distances = [math.sqrt((geo['lng']-r['longitude'])**2 + (geo['lat']-r['latitude'])**2) for r in rlist]
-                shortest = min(distances)
-                index = distances.index(shortest)
-                return rlist[index]
+        rlist = getCitiJSON()
+        distances = [math.sqrt((geo['lng']-r['longitude'])**2 + (geo['lat']-r['latitude'])**2) for r in rlist]
+        shortest = min(distances)
+        index = distances.index(shortest)
+        return rlist[index]
 
 def geo_loc(location):
 #finds the longitude and latitude of a given location parameter using Google's Geocode API
@@ -121,14 +141,15 @@ def getGoogleJSON(origin, destination, mode):
 # returns a dictionary of Google Map route information
         org = origin
         dest = destination
+        now = int(time.time())
         if isinstance(origin,dict):
                 org = str(origin["latitude"])+","+str(origin["longitude"])
                 origin = origin['stationName']
         if isinstance(destination,dict):
                 dest = str(destination["latitude"])+","+str(destination["longitude"])
                 destination = destination['stationName']
-	url = "https://maps.googleapis.com/maps/api/directions/json?origin=%s&destination=%s&mode=%s&key=%s" % (org, dest, mode, key)
-	request = urllib2.urlopen(url)
+	url = "https://maps.googleapis.com/maps/api/directions/json?origin=%s&destination=%s&mode=%s&departure_time=%s&key=%s" % (org, dest, mode, now, key)
+        request = urllib2.urlopen(url)
 	result = request.read()
 	d = json.loads(result)
 	if d['status'] != "OK":
